@@ -6,7 +6,7 @@ Inspired by [How Meta Used AI to Map Tribal Knowledge in Large-Scale Data Pipeli
 
 ## How It Works
 
-Tribal Mapper reads source files from a codebase module, sends them to an LLM (OpenAI GPT-4o via [Instructor](https://github.com/jxnl/instructor)), and produces a structured `ContextCompass` — a short, actionable reference following the "compass, not encyclopedia" principle:
+Tribal Mapper reads source files from a codebase module, sends them to an LLM, and produces a structured `ContextCompass` — a short, actionable reference following the "compass, not encyclopedia" principle:
 
 1. **Quick Commands** — copy-paste operations for common tasks
 2. **Key Files** — the 3–5 files you actually need
