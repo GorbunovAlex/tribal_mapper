@@ -32,3 +32,5 @@ class AppConfig(BaseModel):
     extensions: list[str] = [".py", ".js", ".ts"]
     agents: AgentsConfig = AgentsConfig()
     embedding_model: str = "text-embedding-3-small"
+    rpm_limit: int = 10
+    max_concurrency: int = 4

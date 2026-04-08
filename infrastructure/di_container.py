@@ -10,6 +10,7 @@ from config.loader import load_config
 from infrastructure.ai.agent_factory import AgentFactory
 from infrastructure.ai.embedding_scorer import EmbeddingRelevanceScorer
 from infrastructure.ai.langgraph_pipeline import LangGraphExtractionPipeline
+from infrastructure.ai.rate_limiter import RateLimiter
 from infrastructure.storage.local_fs_repository import LocalFileCompassRepository
 from infrastructure.vcs.git_repo_traversal import GitRepoTraversal
 
@@ -29,8 +30,11 @@ class Container:
             model=self._config.embedding_model,
             api_key=self._config.openai_api_key,
         )
+        self._rate_limiter = RateLimiter(self._config.rpm_limit)
         self._agent_factory = AgentFactory(
-            self._config.agents, api_key=self._config.openai_api_key
+            self._config.agents,
+            api_key=self._config.openai_api_key,
+            rate_limiter=self._rate_limiter,
         )
         self._pipeline: ExtractionPipelineInterface = LangGraphExtractionPipeline(
             self._agent_factory
@@ -42,7 +46,11 @@ class Container:
             self._compass_repo,
             token_ceiling=self._config.token_ceiling,
         )
-        self._index_codebase = IndexCodebaseUseCase(self._code_repo, self._index_module)
+        self._index_codebase = IndexCodebaseUseCase(
+            self._code_repo,
+            self._index_module,
+            max_concurrency=self._config.max_concurrency,
+        )
         self._route_query = RouteQueryUseCase(self._compass_repo, self._scorer)
 
     @property

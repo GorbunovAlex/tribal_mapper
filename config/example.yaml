@@ -21,6 +21,13 @@ extensions:
 
 embedding_model: text-embedding-3-small
 
+# Rate limiting — tune to your OpenAI plan's RPM (requests per minute).
+# Free tier ≈ 3 RPM; pay-as-you-go tier 1 ≈ 500 RPM.
+rpm_limit: 10
+
+# Maximum number of modules indexed in parallel.
+max_concurrency: 4
+
 agents:
   explorer:
     model: gpt-4o
