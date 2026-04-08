@@ -8,8 +8,8 @@ from domain.entities.context_compass import ContextCompass
 
 
 class LocalFileCompassRepository(CompassRepositoryInterface):
-    def __init__(self, base_dir: str = ".ai_context") -> None:
-        self._base = Path(base_dir)
+    def __init__(self, root: str = ".", base_dir: str = ".ai_context") -> None:
+        self._base = Path(root).resolve() / base_dir
         self._base.mkdir(parents=True, exist_ok=True)
 
     def _safe_name(self, module_path: str) -> str:

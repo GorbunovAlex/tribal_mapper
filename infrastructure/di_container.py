@@ -15,11 +15,13 @@ from infrastructure.vcs.git_repo_traversal import GitRepoTraversal
 
 
 class Container:
-    def __init__(self, config: AppConfig | None = None) -> None:
+    def __init__(self, config: AppConfig | None = None, root: str = ".") -> None:
         self._config = config or load_config()
 
         # Infrastructure — wired from config singleton
-        self._compass_repo: CompassRepositoryInterface = LocalFileCompassRepository()
+        self._compass_repo: CompassRepositoryInterface = LocalFileCompassRepository(
+            root=root
+        )
         self._code_repo: CodeRepositoryInterface = GitRepoTraversal(
             extensions=set(self._config.extensions)
         )

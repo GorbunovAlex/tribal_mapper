@@ -27,7 +27,7 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.command == "index":
-        container = Container()
+        container = Container(root=args.path)
 
         if not container.config.openai_api_key:
             print(
