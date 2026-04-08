@@ -24,13 +24,6 @@ def load_config(path: str | Path | None = None) -> AppConfig:
         with path.open("r", encoding="utf-8") as f:
             raw = yaml.safe_load(f) or {}
 
-    # Merge agents.yaml into the config if not already specified
-    agents_path = _CONFIG_DIR / "agents.yaml"
-    if "agents" not in raw and agents_path.exists():
-        with agents_path.open("r", encoding="utf-8") as f:
-            agents_raw = yaml.safe_load(f) or {}
-        raw["agents"] = agents_raw
-
     _singleton = AppConfig.model_validate(raw)
     return _singleton
 

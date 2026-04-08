@@ -24,9 +24,12 @@ class Container:
             extensions=set(self._config.extensions)
         )
         self._scorer: RelevanceScorerInterface = EmbeddingRelevanceScorer(
-            model=self._config.embedding_model
+            model=self._config.embedding_model,
+            api_key=self._config.openai_api_key,
         )
-        self._agent_factory = AgentFactory(self._config.agents)
+        self._agent_factory = AgentFactory(
+            self._config.agents, api_key=self._config.openai_api_key
+        )
         self._pipeline: ExtractionPipelineInterface = LangGraphExtractionPipeline(
             self._agent_factory
         )

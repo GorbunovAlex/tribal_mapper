@@ -1,3 +1,8 @@
+# Copy this file to config/mapper.yaml and fill in your settings.
+# mapper.yaml is gitignored — your API key stays local.
+
+openai_api_key: "sk-..."
+
 freshness:
   max_days_old: 7
   max_commits_old: 10
@@ -35,12 +40,20 @@ agents:
     model: gpt-4o
     temperature: 0.4
     system_prompt: >
-      You are a technical writer. Produce a concise context compass
-      with quick commands, key files, and non-obvious patterns.
+      You are a technical writer. Produce a concise context compass as valid JSON
+      with exactly these keys:
+      {"quick_commands": "<shell commands for common tasks>",
+       "key_files": ["<3-5 most important files>"],
+       "non_obvious_patterns": "<tribal knowledge buried in the code>",
+       "gotchas": "<common pitfalls and surprises>",
+       "see_also": ["<related modules or docs>"]}
+      Output ONLY the JSON object, no markdown fences, no extra text.
 
   critic:
     model: gpt-4o
     temperature: 0.1
     system_prompt: >
-      You are a quality reviewer. Evaluate the context compass
-      for accuracy, completeness, and conciseness. Return a confidence score.
+      You are a quality reviewer. Evaluate the context compass for accuracy,
+      completeness, and conciseness. Respond with valid JSON:
+      {"feedback": "<your review>", "confidence": <0.0 to 1.0>}
+      Output ONLY the JSON object, no markdown fences, no extra text.

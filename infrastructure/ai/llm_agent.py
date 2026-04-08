@@ -7,12 +7,15 @@ from infrastructure.ai.base import IAgent
 
 
 class LLMAgent(IAgent):
-    def __init__(self, config: AgentConfig, stage: AgentStage) -> None:
+    def __init__(
+        self, config: AgentConfig, stage: AgentStage, api_key: str = ""
+    ) -> None:
         self._stage = stage
         self._system_prompt = config.system_prompt
         self._llm = ChatOpenAI(
             model=config.model,
             temperature=config.temperature,
+            api_key=api_key or None,
         )
 
     def _parse_confidence(self, content: str) -> float:

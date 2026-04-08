@@ -25,8 +25,10 @@ def _compass_text(compass: ContextCompass) -> str:
 
 
 class EmbeddingRelevanceScorer(RelevanceScorerInterface):
-    def __init__(self, model: str = "text-embedding-3-small") -> None:
-        self._embeddings = OpenAIEmbeddings(model=model)
+    def __init__(
+        self, model: str = "text-embedding-3-small", api_key: str = ""
+    ) -> None:
+        self._embeddings = OpenAIEmbeddings(model=model, api_key=api_key or None)
 
     def score(
         self, query: str, compasses: list[ContextCompass]

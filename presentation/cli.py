@@ -1,6 +1,7 @@
 import argparse
 import asyncio
 import logging
+import sys
 from pathlib import Path
 
 from domain.entities.code_module import CodeModule
@@ -27,6 +28,14 @@ def main() -> None:
 
     if args.command == "index":
         container = Container()
+
+        if not container.config.openai_api_key:
+            print(
+                "Error: OpenAI API key not configured.\n"
+                "Set 'openai_api_key' in config/mapper.yaml "
+                "or export OPENAI_API_KEY env var."
+            )
+            sys.exit(1)
 
         if args.module:
             _index_single_module(container, args.path, args.module)
