@@ -1,0 +1,15 @@
+freshness:
+  max_days_old: 7
+  max_commits_old: 10
+
+token_ceiling: 1000
+
+extensions:
+  - .py
+  - .js
+  - .ts
+  - .jsx
+  - .tsx
+  - .go
+  - .rs
+  - .java
