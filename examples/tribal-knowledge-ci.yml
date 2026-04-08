@@ -24,8 +24,10 @@ jobs:
 
       - name: Clone & install tribal_mapper
         run: |
-          git clone https://github.com/<your-org>/tribal_mapper.git /tmp/tribal_mapper
+          git clone --depth 1 --branch main https://github.com/<your-org>/tribal_mapper.git /tmp/tribal_mapper
           cd /tmp/tribal_mapper
+          # Pin to a known-good commit for reproducibility:
+          # git checkout <commit-sha>
           uv sync
 
       - name: Create mapper config

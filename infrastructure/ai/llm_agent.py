@@ -34,8 +34,15 @@ class LLMAgent(IAgent):
         """Extract confidence if the critic embeds one, else default to 1.0."""
         import re
 
-        match = re.search(r"confidence[:\s]+([0-9]*\.?[0-9]+)", content, re.IGNORECASE)
-        return float(match.group(1)) if match else 1.0
+        match = re.search(
+            r"\bconfidence[:\s]+([0-9]{1,3}(?:\.[0-9]{1,2})?)\b",
+            content,
+            re.IGNORECASE,
+        )
+        if not match:
+            return 1.0
+        value = float(match.group(1))
+        return value if 0.0 <= value <= 1.0 else 1.0
 
     def invoke(self, message: AgentMessage) -> AgentMessage:
         if self._rate_limiter:
