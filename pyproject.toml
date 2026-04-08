@@ -23,7 +23,7 @@ dev = [
 
 [tool.ruff]
 # Target version for syntax and bug-finds
-target-version = "py311"
+target-version = "py313"
 line-length = 88
 
 [tool.ruff.lint]

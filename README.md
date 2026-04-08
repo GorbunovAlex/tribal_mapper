@@ -39,11 +39,10 @@ tribal_mapper/
 │   ├── vcs/               # GitRepoTraversal (.mapperignore support)
 │   └── di_container.py    # Wires everything together
 ├── presentation/
-│   ├── cli.py             # `mapper index ./repo`
-│   └── api.py             # POST /route
+│   └── cli.py             # `mapper index ./repo`
 ├── config/
-│   ├── mapper.yaml        # Freshness policy, token ceiling, extensions
-│   ├── agents.yaml        # Agent prompts, models, temperatures
+│   ├── mapper.yaml        # All settings: API key, freshness, agents, etc.
+│   ├── example.yaml       # Template — copy to mapper.yaml
 │   └── loader.py          # Singleton config loader
 └── main.py
 ```
@@ -51,11 +50,26 @@ tribal_mapper/
 ## Requirements
 
 - Python >= 3.13
+- [uv](https://docs.astral.sh/uv/) (recommended package manager)
 
 ## Installation
 
 ```bash
-pip install -e .
+uv sync
+```
+
+For development (includes pre-commit, pytest):
+
+```bash
+uv sync --group dev
+uv run pre-commit install
+```
+
+Copy the example config and add your API key:
+
+```bash
+cp config/example.yaml config/mapper.yaml
+# Edit config/mapper.yaml and set openai_api_key
 ```
 
 ## Usage
@@ -74,16 +88,19 @@ python main.py index ./my-project --module src/auth.py
 
 ## Configuration
 
-All config lives in `config/`. Copy `config/example.yaml` to `config/mapper.yaml` to customise:
+All config lives in `config/mapper.yaml`. Copy `config/example.yaml` to get started:
 
 | Setting | Default | Description |
 |---|---|---|
+| `openai_api_key` | `$OPENAI_API_KEY` | OpenAI API key (falls back to env var) |
 | `freshness.max_days_old` | 7 | Days before a compass is considered stale |
 | `freshness.max_commits_old` | 10 | Commits before a compass is considered stale |
 | `token_ceiling` | 1000 | Max estimated tokens per compass |
 | `extensions` | `.py`, `.js`, `.ts`, … | File extensions to index |
+| `embedding_model` | `text-embedding-3-small` | OpenAI embedding model |
+| `agents.*` | see example.yaml | Agent models, temperatures, system prompts |
 
-Agent configuration (models, temperatures, system prompts) is in `config/agents.yaml`.
+`mapper.yaml` is gitignored — your API key stays local.
 
 ## Dependencies
 

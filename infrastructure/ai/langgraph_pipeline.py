@@ -1,6 +1,8 @@
+import json
+import logging
+
 from langgraph.graph import END, StateGraph
 
-from application.builders.compass_draft_builder import CompassDraftBuilder
 from application.interfaces.extraction_pipeline import ExtractionPipelineInterface
 from domain.entities.code_module import CodeModule
 from domain.entities.compass_draft import CompassDraft
@@ -12,6 +14,8 @@ from infrastructure.ai.nodes import (
     make_explore_node,
     make_write_node,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class LangGraphExtractionPipeline(ExtractionPipelineInterface):
@@ -50,8 +54,33 @@ class LangGraphExtractionPipeline(ExtractionPipelineInterface):
 
         return graph.compile()
 
+    @staticmethod
+    def _parse_writer_output(content: str, module_path: str) -> CompassDraft:
+        """Parse structured JSON from the writer agent into a CompassDraft.
+
+        Falls back to treating the raw content as quick_commands if
+        JSON parsing fails, so the pipeline never crashes.
+        """
+        try:
+            data = json.loads(content)
+            return CompassDraft(
+                quick_commands=data.get("quick_commands", ""),
+                key_files=data.get("key_files", [module_path]),
+                non_obvious_patterns=data.get("non_obvious_patterns", ""),
+                gotchas=data.get("gotchas", ""),
+                see_also=data.get("see_also", []),
+            )
+        except (json.JSONDecodeError, AttributeError):
+            logger.warning(
+                "Writer output for %s was not valid JSON, using raw content",
+                module_path,
+            )
+            return CompassDraft(
+                quick_commands=content,
+                key_files=[module_path],
+            )
+
     def run(self, module: CodeModule) -> CompassDraft:
-        # Seed the initial state
         initial_state: PipelineState = {
             "source_module": module.file_path,
             "raw_content": module.raw_content,
@@ -62,13 +91,9 @@ class LangGraphExtractionPipeline(ExtractionPipelineInterface):
             "retries": 0,
         }
 
-        # Execute the graph — LangGraph runs nodes in order,
-        # following edges until it hits END
         final_state = self._graph.invoke(initial_state)
 
-        # Assemble the draft from final state
-        builder = CompassDraftBuilder()
-        builder.add_quick_commands(final_state["written"].content)
-        builder.add_key_files([module.file_path])
-        builder.add_patterns(final_state["critique"].content)
-        return builder.build()
+        return self._parse_writer_output(
+            final_state["written"].content,
+            module.file_path,
+        )

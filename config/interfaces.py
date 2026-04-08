@@ -1,4 +1,6 @@
-from pydantic import BaseModel
+import os
+
+from pydantic import BaseModel, Field
 
 
 class FreshnessConfig(BaseModel):
@@ -22,6 +24,9 @@ class AgentsConfig(BaseModel):
 class AppConfig(BaseModel):
     model_config = {"frozen": True}
 
+    openai_api_key: str = Field(
+        default_factory=lambda: os.environ.get("OPENAI_API_KEY", "")
+    )
     freshness: FreshnessConfig = FreshnessConfig()
     token_ceiling: int = 1000
     extensions: list[str] = [".py", ".js", ".ts"]

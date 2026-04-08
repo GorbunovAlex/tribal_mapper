@@ -1,3 +1,5 @@
+import json
+
 from domain.entities.code_module import CodeModule
 from domain.value_objects.agent_message import AgentMessage, AgentStage
 from infrastructure.ai.agent_factory import AgentFactory
@@ -26,12 +28,23 @@ class FakeAgent(IAgent):
         )
 
 
+WRITER_JSON = json.dumps(
+    {
+        "quick_commands": "make build && make test",
+        "key_files": ["src/auth.py", "src/login.py"],
+        "non_obvious_patterns": "Uses decorator-based auth",
+        "gotchas": "Token refresh is synchronous",
+        "see_also": ["src/session.py"],
+    }
+)
+
+
 class FakeAgentFactory(AgentFactory):
     def __init__(
         self,
         explore_response: str = "explored content",
         analyse_response: str = "analysed content",
-        write_response: str = "written commands",
+        write_response: str = WRITER_JSON,
         critique_response: str = "critique feedback",
         critique_confidence: float = 0.9,
     ) -> None:
@@ -133,9 +146,11 @@ class TestLangGraphPipeline:
         module = CodeModule(file_path="src/auth.py", raw_content="def login(): pass")
         draft = pipeline.run(module)
 
-        assert draft.quick_commands == "written commands"
-        assert draft.key_files == ["src/auth.py"]
-        assert draft.non_obvious_patterns == "critique feedback"
+        assert draft.quick_commands == "make build && make test"
+        assert draft.key_files == ["src/auth.py", "src/login.py"]
+        assert draft.non_obvious_patterns == "Uses decorator-based auth"
+        assert draft.gotchas == "Token refresh is synchronous"
+        assert draft.see_also == ["src/session.py"]
 
     def test_pipeline_retries_on_low_confidence(self):
         call_count = {"critique": 0, "write": 0}
@@ -188,4 +203,36 @@ class TestLangGraphPipeline:
         draft = pipeline.run(module)
 
         # Should still produce a draft (doesn't crash)
-        assert draft.quick_commands == "written commands"
+        assert draft.quick_commands == "make build && make test"
+
+
+class TestParseWriterOutput:
+    def test_valid_json_parsed(self):
+        content = json.dumps(
+            {
+                "quick_commands": "npm test",
+                "key_files": ["index.js"],
+                "non_obvious_patterns": "uses monkey-patching",
+                "gotchas": "fragile tests",
+                "see_also": ["utils.js"],
+            }
+        )
+        draft = LangGraphExtractionPipeline._parse_writer_output(content, "mod.py")
+        assert draft.quick_commands == "npm test"
+        assert draft.key_files == ["index.js"]
+        assert draft.non_obvious_patterns == "uses monkey-patching"
+        assert draft.gotchas == "fragile tests"
+        assert draft.see_also == ["utils.js"]
+
+    def test_partial_json_fills_defaults(self):
+        content = json.dumps({"quick_commands": "make build"})
+        draft = LangGraphExtractionPipeline._parse_writer_output(content, "mod.py")
+        assert draft.quick_commands == "make build"
+        assert draft.key_files == ["mod.py"]
+        assert draft.non_obvious_patterns == ""
+
+    def test_invalid_json_falls_back_to_raw(self):
+        content = "This is not JSON at all"
+        draft = LangGraphExtractionPipeline._parse_writer_output(content, "mod.py")
+        assert draft.quick_commands == "This is not JSON at all"
+        assert draft.key_files == ["mod.py"]
