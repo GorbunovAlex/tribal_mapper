@@ -1,33 +1,56 @@
 # Tribal Mapper
 
-A tool that uses AI to automatically extract and document tribal knowledge from codebases, producing concise "compass" context files for each module.
+AI-powered tool that indexes codebases into structured context files (`.ai_context/`) and routes the right context to developers at query time.
 
 Inspired by [How Meta Used AI to Map Tribal Knowledge in Large-Scale Data Pipelines](https://engineering.fb.com/2026/04/06/developer-tools/how-meta-used-ai-to-map-tribal-knowledge-in-large-scale-data-pipelines/).
 
 ## How It Works
 
-Tribal Mapper reads source files from a codebase module, sends them to an LLM, and produces a structured `ContextCompass` — a short, actionable reference following the "compass, not encyclopedia" principle:
+Tribal Mapper has two bounded contexts:
+
+**Indexing** — traverses a repository, runs each module through a multi-agent extraction pipeline (Explorer → Analyst → Writer → Critic), and persists a structured `ContextCompass` to `.ai_context/<module>.json`.
+
+**Routing** — accepts a natural-language query, scores available compasses for relevance, filters out stale ones, and returns an enriched prompt with the top-N context blocks injected.
+
+Each `ContextCompass` contains:
 
 1. **Quick Commands** — copy-paste operations for common tasks
 2. **Key Files** — the 3–5 files you actually need
 3. **Non-Obvious Patterns** — tribal knowledge buried in the code
-4. **See Also** — cross-references to related modules
+4. **Gotchas** — common pitfalls and surprises
+5. **See Also** — cross-references to related modules
 
 ## Project Structure
 
 ```
 tribal_mapper/
-├── domain/           # Core domain model (ContextCompass)
-├── application/      # Use cases and port interfaces
-├── infrastructure/   # Adapters (LLM client, file system, storage)
-├── presentation/     # CLI / API layer
-└── main.py           # Entry point
+├── domain/
+│   ├── entities/          # CodeModule, CompassDraft, ContextCompass
+│   ├── value_objects/     # TokenCount, FreshnessPolicy, AgentMessage
+│   ├── policies/          # CompassPromotionPolicy
+│   └── exceptions.py
+├── application/
+│   ├── interfaces/        # ExtractionPipeline, CompassRepository, CodeRepository, RelevanceScorer
+│   ├── use_cases/         # IndexModule, IndexCodebase, RouteQuery
+│   └── builders/          # CompassDraftBuilder
+├── infrastructure/
+│   ├── ai/                # LangGraph pipeline, AgentFactory, EmbeddingScorer
+│   ├── storage/           # LocalFileCompassRepository (.ai_context/ JSON)
+│   ├── vcs/               # GitRepoTraversal (.mapperignore support)
+│   └── di_container.py    # Wires everything together
+├── presentation/
+│   ├── cli.py             # `mapper index ./repo`
+│   └── api.py             # POST /route
+├── config/
+│   ├── mapper.yaml        # Freshness policy, token ceiling, extensions
+│   ├── agents.yaml        # Agent prompts, models, temperatures
+│   └── loader.py          # Singleton config loader
+└── main.py
 ```
 
 ## Requirements
 
 - Python >= 3.13
-- OpenAI API key
 
 ## Installation
 
@@ -35,7 +58,40 @@ tribal_mapper/
 pip install -e .
 ```
 
+## Usage
+
+### Index a codebase
+
+```bash
+python main.py index ./my-project
+```
+
+### Route a query (API)
+
+```bash
+uvicorn presentation.api:app --reload
+```
+
+```
+POST /route
+{ "query": "how does auth token refresh work?" }
+```
+
+## Configuration
+
+All config lives in `config/`. Copy `config/example.yaml` to `config/mapper.yaml` to customise:
+
+| Setting | Default | Description |
+|---|---|---|
+| `freshness.max_days_old` | 7 | Days before a compass is considered stale |
+| `freshness.max_commits_old` | 10 | Commits before a compass is considered stale |
+| `token_ceiling` | 1000 | Max estimated tokens per compass |
+| `extensions` | `.py`, `.js`, `.ts`, … | File extensions to index |
+
+Agent configuration (models, temperatures, system prompts) is in `config/agents.yaml`.
+
 ## Dependencies
 
-- [instructor](https://pypi.org/project/instructor/) — structured LLM outputs
 - [pydantic](https://pypi.org/project/pydantic/) — data validation and domain models
+- [fastapi](https://pypi.org/project/fastapi/) — routing API
+- [pyyaml](https://pypi.org/project/pyyaml/) — config loading
