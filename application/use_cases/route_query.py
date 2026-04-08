@@ -1,10 +1,9 @@
-from datetime import datetime
 from dataclasses import dataclass
+from datetime import datetime
 
 from application.interfaces.compass_repository import CompassRepositoryInterface
 from application.interfaces.relevance_scorer import RelevanceScorerInterface
-from domain.entities.context_compass import ContextCompass
-from domain.exceptions import UnroutableQuery
+from domain.exceptions import UnroutableQueryError
 
 
 @dataclass
@@ -32,7 +31,7 @@ class RouteQueryUseCase:
         fresh = [c for c in all_compasses if not c.is_stale(current_time, 0)]
 
         if not fresh:
-            raise UnroutableQuery("No fresh context compasses available.")
+            raise UnroutableQueryError("No fresh context compasses available.")
 
         scored = self._scorer.score(query, fresh)
         scored.sort(key=lambda pair: pair[1], reverse=True)

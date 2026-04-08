@@ -26,3 +26,4 @@ class AppConfig(BaseModel):
     token_ceiling: int = 1000
     extensions: list[str] = [".py", ".js", ".ts"]
     agents: AgentsConfig = AgentsConfig()
+    embedding_model: str = "text-embedding-3-small"

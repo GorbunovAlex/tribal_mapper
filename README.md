@@ -66,15 +66,10 @@ pip install -e .
 python main.py index ./my-project
 ```
 
-### Route a query (API)
+### Index a single module
 
 ```bash
-uvicorn presentation.api:app --reload
-```
-
-```
-POST /route
-{ "query": "how does auth token refresh work?" }
+python main.py index ./my-project --module src/auth.py
 ```
 
 ## Configuration
@@ -93,5 +88,7 @@ Agent configuration (models, temperatures, system prompts) is in `config/agents.
 ## Dependencies
 
 - [pydantic](https://pypi.org/project/pydantic/) — data validation and domain models
-- [fastapi](https://pypi.org/project/fastapi/) — routing API
+- [langchain-openai](https://pypi.org/project/langchain-openai/) — LLM and embedding clients
+- [langgraph](https://pypi.org/project/langgraph/) — multi-agent pipeline orchestration
+- [numpy](https://pypi.org/project/numpy/) — cosine similarity for embedding scoring
 - [pyyaml](https://pypi.org/project/pyyaml/) — config loading

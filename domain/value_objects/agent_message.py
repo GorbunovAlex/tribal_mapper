@@ -3,7 +3,7 @@ from enum import Enum
 from pydantic import BaseModel
 
 
-class AgentStage(str, Enum):
+class AgentStage(Enum):
     EXPLORE = "EXPLORE"
     ANALYSE = "ANALYSE"
     WRITE = "WRITE"

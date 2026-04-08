@@ -2,20 +2,18 @@ from datetime import datetime
 
 from domain.entities.compass_draft import CompassDraft
 from domain.entities.context_compass import ContextCompass
-from domain.exceptions import ContextTooLarge, IncompleteDraft
+from domain.exceptions import ContextTooLargeError, IncompleteDraftError
 from domain.value_objects.token_count import TokenCount
 
 
 class CompassPromotionPolicy:
     @staticmethod
-    def promote(
-        draft: CompassDraft, token_ceiling: int = 1000
-    ) -> ContextCompass:
+    def promote(draft: CompassDraft, token_ceiling: int = 1000) -> ContextCompass:
         if not draft.quick_commands:
-            raise IncompleteDraft("Draft must have quick commands.")
+            raise IncompleteDraftError("Draft must have quick commands.")
 
         if not draft.key_files:
-            raise IncompleteDraft("Draft must have key files.")
+            raise IncompleteDraftError("Draft must have key files.")
 
         total_chars = (
             len(draft.quick_commands)
@@ -27,7 +25,7 @@ class CompassPromotionPolicy:
         estimated_tokens = total_chars // 4
 
         if estimated_tokens > token_ceiling:
-            raise ContextTooLarge(
+            raise ContextTooLargeError(
                 f"Assembled token count {estimated_tokens} exceeds "
                 f"ceiling {token_ceiling}"
             )

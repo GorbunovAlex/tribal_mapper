@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from domain.exceptions import ContextTooLarge
+from domain.exceptions import ContextTooLargeError
 
 DEFAULT_TOKEN_CEILING = 1000
 
@@ -12,6 +12,6 @@ class TokenCount:
 
     def __post_init__(self) -> None:
         if self.value > self.ceiling:
-            raise ContextTooLarge(
+            raise ContextTooLargeError(
                 f"Token count {self.value} exceeds ceiling {self.ceiling}"
             )
