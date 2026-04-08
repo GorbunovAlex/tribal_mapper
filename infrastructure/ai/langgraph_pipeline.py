@@ -63,14 +63,16 @@ class LangGraphExtractionPipeline(ExtractionPipelineInterface):
         """
         try:
             data = json.loads(content)
+            if not isinstance(data, dict):
+                raise ValueError("Expected JSON object")
             return CompassDraft(
-                quick_commands=data.get("quick_commands", ""),
-                key_files=data.get("key_files", [module_path]),
-                non_obvious_patterns=data.get("non_obvious_patterns", ""),
-                gotchas=data.get("gotchas", ""),
-                see_also=data.get("see_also", []),
+                quick_commands=str(data.get("quick_commands", ""))[:10000],
+                key_files=[str(f) for f in data.get("key_files", [module_path])[:50]],
+                non_obvious_patterns=str(data.get("non_obvious_patterns", ""))[:10000],
+                gotchas=str(data.get("gotchas", ""))[:10000],
+                see_also=[str(s) for s in data.get("see_also", [])[:20]],
             )
-        except (json.JSONDecodeError, AttributeError):
+        except (json.JSONDecodeError, AttributeError, ValueError):
             logger.warning(
                 "Writer output for %s was not valid JSON, using raw content",
                 module_path,

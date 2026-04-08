@@ -48,10 +48,12 @@ class GitRepoTraversal(CodeRepositoryInterface):
                 if any(pat in rel for pat in ignored_patterns):
                     continue
                 try:
+                    stat = fpath.stat()
+                    if stat.st_size > 1_048_576:  # 1 MB
+                        continue
                     content = fpath.read_text(encoding="utf-8")
-                except (UnicodeDecodeError, PermissionError):
+                except (UnicodeDecodeError, PermissionError, OSError):
                     continue
-                stat = fpath.stat()
                 modules.append(
                     CodeModule(
                         file_path=rel,
@@ -77,11 +79,12 @@ class GitRepoTraversal(CodeRepositoryInterface):
                 capture_output=True,
                 text=True,
                 check=False,
+                timeout=30,
             )
             return (
                 len(result.stdout.strip().splitlines()) if result.stdout.strip() else 0
             )
-        except FileNotFoundError:
+        except (FileNotFoundError, subprocess.TimeoutExpired):
             return 0
 
     @staticmethod

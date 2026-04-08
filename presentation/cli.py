@@ -52,15 +52,22 @@ def main() -> None:
 
 
 def _index_single_module(container: Container, root: str, module_path: str) -> None:
-    fpath = Path(root) / module_path
+    root_path = Path(root).resolve()
+    fpath = (root_path / module_path).resolve()
+
+    # Guard against path traversal (e.g. --module ../../etc/passwd)
+    if not fpath.is_relative_to(root_path):
+        print(f"Error: '{module_path}' escapes the repository root.")
+        sys.exit(1)
+
     if not fpath.is_file():
         print(f"File not found: {fpath}")
         return
 
     try:
         content = fpath.read_text(encoding="utf-8")
-    except (UnicodeDecodeError, PermissionError) as e:
-        print(f"Cannot read {fpath}: {e}")
+    except (UnicodeDecodeError, PermissionError):
+        print(f"Cannot read {fpath}")
         return
 
     module = CodeModule(
