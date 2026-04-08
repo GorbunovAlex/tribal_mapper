@@ -1,12 +1,7 @@
-from abc import ABC, abstractmethod
-
 from config.interfaces import AgentsConfig
-from domain.value_objects.agent_message import AgentMessage
-
-
-class IAgent(ABC):
-    @abstractmethod
-    def invoke(self, message: AgentMessage) -> AgentMessage: ...
+from domain.value_objects.agent_message import AgentStage
+from infrastructure.ai.base import IAgent
+from infrastructure.ai.llm_agent import LLMAgent
 
 
 class AgentFactory:
@@ -14,13 +9,13 @@ class AgentFactory:
         self._config = config
 
     def create_explorer(self) -> IAgent:
-        raise NotImplementedError("LangGraph agent not yet wired")
+        return LLMAgent(self._config.explorer, AgentStage.EXPLORE)
 
     def create_analyst(self) -> IAgent:
-        raise NotImplementedError("LangGraph agent not yet wired")
+        return LLMAgent(self._config.analyst, AgentStage.ANALYSE)
 
     def create_writer(self) -> IAgent:
-        raise NotImplementedError("LangGraph agent not yet wired")
+        return LLMAgent(self._config.writer, AgentStage.WRITE)
 
     def create_critic(self) -> IAgent:
-        raise NotImplementedError("LangGraph agent not yet wired")
+        return LLMAgent(self._config.critic, AgentStage.CRITIQUE)

@@ -8,6 +8,23 @@ from domain.entities.code_module import CodeModule
 
 DEFAULT_EXTENSIONS = {".py", ".js", ".ts", ".jsx", ".tsx", ".go", ".rs", ".java"}
 
+DEFAULT_IGNORE_PATTERNS = [
+    "node_modules/",
+    "__pycache__/",
+    ".venv/",
+    "venv/",
+    ".env/",
+    "dist/",
+    "build/",
+    ".git/",
+    ".tox/",
+    ".mypy_cache/",
+    ".pytest_cache/",
+    ".ruff_cache/",
+    "egg-info/",
+    ".ai_context/",
+]
+
 
 class GitRepoTraversal(CodeRepositoryInterface):
     def __init__(self, extensions: set[str] | None = None) -> None:
@@ -49,18 +66,32 @@ class GitRepoTraversal(CodeRepositoryInterface):
         since_str = since.strftime("%Y-%m-%dT%H:%M:%S")
         try:
             result = subprocess.run(
-                ["git", "log", "--oneline", f"--since={since_str}", "--", module.file_path],
+                [
+                    "git",
+                    "log",
+                    "--oneline",
+                    f"--since={since_str}",
+                    "--",
+                    module.file_path,
+                ],
                 capture_output=True,
                 text=True,
                 check=False,
             )
-            return len(result.stdout.strip().splitlines()) if result.stdout.strip() else 0
+            return (
+                len(result.stdout.strip().splitlines()) if result.stdout.strip() else 0
+            )
         except FileNotFoundError:
             return 0
 
     @staticmethod
     def _load_ignore(path: Path) -> list[str]:
-        if not path.exists():
-            return []
-        lines = path.read_text(encoding="utf-8").splitlines()
-        return [line.strip() for line in lines if line.strip() and not line.startswith("#")]
+        patterns = list(DEFAULT_IGNORE_PATTERNS)
+        if path.exists():
+            lines = path.read_text(encoding="utf-8").splitlines()
+            patterns.extend(
+                line.strip()
+                for line in lines
+                if line.strip() and not line.startswith("#")
+            )
+        return patterns

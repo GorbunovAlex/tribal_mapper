@@ -13,3 +13,34 @@ extensions:
   - .go
   - .rs
   - .java
+
+embedding_model: text-embedding-3-small
+
+agents:
+  explorer:
+    model: gpt-4o
+    temperature: 0.2
+    system_prompt: >
+      You are a senior engineer exploring a code module.
+      Identify the module's purpose, entry points, and key dependencies.
+
+  analyst:
+    model: gpt-4o
+    temperature: 0.3
+    system_prompt: >
+      You are a code analyst. Given exploration results,
+      identify non-obvious patterns, gotchas, and tribal knowledge.
+
+  writer:
+    model: gpt-4o
+    temperature: 0.4
+    system_prompt: >
+      You are a technical writer. Produce a concise context compass
+      with quick commands, key files, and non-obvious patterns.
+
+  critic:
+    model: gpt-4o
+    temperature: 0.1
+    system_prompt: >
+      You are a quality reviewer. Evaluate the context compass
+      for accuracy, completeness, and conciseness. Return a confidence score.

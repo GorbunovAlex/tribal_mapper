@@ -23,7 +23,9 @@ class Container:
         self._code_repo: CodeRepositoryInterface = GitRepoTraversal(
             extensions=set(self._config.extensions)
         )
-        self._scorer: RelevanceScorerInterface = EmbeddingRelevanceScorer()
+        self._scorer: RelevanceScorerInterface = EmbeddingRelevanceScorer(
+            model=self._config.embedding_model
+        )
         self._agent_factory = AgentFactory(self._config.agents)
         self._pipeline: ExtractionPipelineInterface = LangGraphExtractionPipeline(
             self._agent_factory

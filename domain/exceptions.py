@@ -2,17 +2,17 @@ class DomainError(Exception):
     pass
 
 
-class ContextTooLarge(DomainError):
+class ContextTooLargeError(DomainError):
     pass
 
 
-class IncompleteDraft(DomainError):
+class IncompleteDraftError(DomainError):
     pass
 
 
-class StaleCompass(DomainError):
+class StaleCompassError(DomainError):
     pass
 
 
-class UnroutableQuery(DomainError):
+class UnroutableQueryError(DomainError):
     pass
