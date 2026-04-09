@@ -13,6 +13,8 @@ on:
 jobs:
   index:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout target repo
         uses: actions/checkout@v4
